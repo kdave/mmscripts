@@ -1,0 +1,41 @@
+#!/bin/sh
+
+here=`readlink -f $(dirname $0)`
+hn=`hostname -s`
+testdir=`pwd`
+
+if ! [ `basename $testdir` = 'test' ]; then
+	echo "Make directory test/ and go there"
+	exit 1
+fi
+
+if [ -f "$here/config-m-$hn" ]; then
+	echo "Machine config: OK, link"
+	if ! stat "config-m-$hn" >& /dev/null; then
+		ln -s "$here/config-m-$hn"
+	fi
+fi
+
+for i in	\
+	config-btrfs		\
+	kern-config-debug	\
+	kern-config-from-proc	\
+	kern-config-fstests	\
+	kern-inst-built		\
+	kick-kernel		\
+	pick-kernel		\
+	run-list		\
+	run-single		\
+	run-test		\
+	set-local-mirror	\
+	tag-set-today		\
+	configs-fsqa		\
+	; do
+	ln -sf "$here/$i" .
+done
+
+cp -v "$here/mmtests.tgz" .
+tar xvf mmtests.tgz
+
+./set-local-mirror
+./tag-set-today

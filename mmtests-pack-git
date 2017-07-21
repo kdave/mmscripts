@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd mmtests || { echo "no git"; exit 1; }
+git archive --prefix=mmtests/ --format=tar master | gzip --best > ../mmtests.tgz

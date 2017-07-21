@@ -1,0 +1,43 @@
+#!/bin/sh
+
+test -d mmtests || { echo "no mmtests"; exit 1; }
+test -z "$1" && { echo "no config given"; exit 1; }
+
+here=`pwd`
+if [ -f 'config-tag' ]; then
+	echo "Found tag file, using it"
+	tag=`cat config-tag | tr -d '\t\n '`
+else
+	echo "Generating tag from kernel version"
+	tag=`uname -r | sed -e 's/-.*$//'`
+fi
+echo "TAG: $tag"
+
+hostconf="$here/config-m-`hostname`"
+fsconf="$here/config-btrfs"
+mnt="$here/mmtests/work/testdisk"
+confpath="$here/$1"
+conf="$1"
+
+if ! [ -f "$conf" ]; then
+	if [ -f "$here/mmtests/configs/$conf" ]; then
+		echo "Using config inside mmtests"
+		conf="$here/mmtests/configs/$conf"
+	else
+		echo "Warning: config not found"
+	fi
+else
+	conf="$confpath"
+	echo "Using local config file $conf"
+fi
+
+if findmnt "$mnt"; then
+	echo "Found that $mnt is still mounted, fix it or press Enter to continue"
+	read
+fi
+cd mmtests
+./run-mmtests.sh -c "$fsconf" -c "$hostconf" -c "$conf" "$tag"
+
+if findmnt "$mnt"; then
+	sudo umount "$mnt"
+fi

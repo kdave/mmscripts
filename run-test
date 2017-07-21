@@ -1,0 +1,101 @@
+#!/bin/sh
+
+# run a test script inside the environment defined by the mmtests setup
+#
+# this will:
+# - read the per-hostname config ($HOSTCONFIG)
+# - mkfs the filesystem
+# - create and mount to the directory mnt ($MNTDIR)
+# - cd into mnt and run the given script or command
+# - unmount
+#
+# without any script given, it will supply a simple 'df -h' to see if the steps
+# above work
+
+# variables available to the test script:
+# - HOSTCONFIG
+# - MNTDIR
+# - MMSETUP - the test is being run from this wrapper
+
+export HOSTCONFIG=config-m-`hostname -s`
+if [ "$1" == '--config' -o "$1" == '-c' ]; then
+	HOSTCONFIG="$2"
+	if [ -z "$HOSTCONFIG" ]; then
+		echo "ERROR: --config with empty value"
+		exit 1
+	fi
+	shift
+	shift
+fi
+
+runme='eval df -h $MNTDIR'
+if ! [ -z "$1" ]; then
+	runme="$1"
+fi
+
+echo "Executing: $runme"
+
+export MNTDIR=`pwd`/mnt
+
+if ! [ -f "$HOSTCONFIG" ]; then
+	echo "ERROR: cannot find host config: $HOSTCONFIG"
+	exit 1
+fi
+
+function _mkfs() {
+	if [ -z "$TESTDISK_PARTITION" ]; then
+		echo "ERROR: mkfs: empty TESTDISK_PARTITION"
+		exit 1
+	fi
+	mkfs.btrfs --nodiscard -f 		\
+		$TESTDISK_MKFS_PARAM		\
+		$TESTDISK_PARTITION		\
+		$TESTDISK_MKFS_PARAM_SUFFIX
+}
+export -f _mkfs
+
+function _mount() {
+	if [ -z "$TESTDISK_PARTITION" ]; then
+		echo "ERROR: mount: empty TESTDISK_PARTITION"
+		exit 1
+	fi
+	mount ${TESTDISK_MOUNT_ARGS:+-o $TESTDISK_MOUNT_ARGS}	\
+		$TESTDISK_PARTITION				\
+		"$MNTDIR"					\
+		|| { echo ERROR: cannot mount; exit 1; }
+}
+export -f _mount
+
+function _mount_cycle() {
+	echo "INFO: mount cycle"
+	cd "$MNTDIR"/..
+	umount "$MNTDIR"
+	_mount
+	cd "$MNTDIR"
+}
+export -f _mount_cycle
+
+function do_round() {
+	_mkfs
+	mkdir -p "$MNTDIR"
+	_mount
+
+	#cd "$MNTDIR"
+	do_test
+	cd "$MNTDIR"/..
+	umount "$MNTDIR"
+}
+
+function do_test() {
+	if [ -z "$runme" ]; then
+		echo "ERROR: no command to run?"
+		exit 1
+	fi
+	echo "EXEC: $runme"
+	$runme
+}
+
+. "./$HOSTCONFIG"
+
+export MMSETUP=`date`
+do_round

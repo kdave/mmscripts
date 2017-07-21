@@ -1,0 +1,6 @@
+#!/bin/sh
+
+zcat /proc/config.gz > .config
+yes '' | make oldconfig
+yes '' | make localmodconfig
+yes '' | make oldconfig

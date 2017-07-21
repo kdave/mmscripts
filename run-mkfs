@@ -1,0 +1,25 @@
+#!/bin/sh
+
+here=`pwd`
+hostconf="$here/config-m-`hostname`"
+fsconf="$here/config-btrfs"
+
+source "$hostconf"
+source "$fsconf"
+
+for arg in "$@"; do
+	p=$(readlink -f "$arg")
+	echo "Source arg: $arg ($p)"
+	source "$p"
+done
+
+[ -z "$TESTDISK_FILESYSTEM" ] && { echo "no filesystem defined"; exit 1; }
+[ -z "$TESTDISK_PARTITION" ] && { echo "no partition defined"; exit 1; }
+
+if findmnt "$TESTDISK_PARTITION"; then
+	echo "Found that $TESTDISK_PARTITION is still mounted, fix it manually"
+	exit 1
+fi
+
+echo COMMAND: mkfs."$TESTDISK_FILESYSTEM" $TESTDISK_MKFS_PARAM $TESTDISK_PARTITION $TESTDISK_MKFS_PARAM_SUFFIX
+mkfs."$TESTDISK_FILESYSTEM" $TESTDISK_MKFS_PARAM $TESTDISK_PARTITION $TESTDISK_MKFS_PARAM_SUFFIX

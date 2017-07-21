@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -f "config-tag" ]; then
+	echo "Current: `cat config-tag`"
+else
+	echo "Current:"
+fi
+
+new=`date +%Y%m%d`
+
+echo "New: $new"
+echo "$new" > config-tag

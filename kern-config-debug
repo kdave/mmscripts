@@ -1,0 +1,34 @@
+#!/bin/sh
+
+s=scripts/config
+function y() {
+	echo "Enable:  $1"
+	$s --enable "$1"
+}
+function n() {
+	echo "Disable: $1"
+	$s --disable "$1"
+}
+function m() {
+	echo "Module:  $1"
+	$s --module "$1"
+}
+
+type -p $s || { echo "scripts/config not found, not in linux dir?"; exit 1; }
+
+y CONFIG_DEBUG_BUGVERBOSE
+y CONFIG_STACKTRACE
+y CONFIG_BTRFS_ASSERT
+y CONFIG_BTRFS_FS_RUN_SANITY_TESTS
+
+y CONFIG_LOCKDEP
+n CONFIG_DEBUG_LOCKDEP
+y CONFIG_DEBUG_ATOMIC_SLEEP
+y CONFIG_PROVE_LOCKING
+y CONFIG_PROVE_RCU
+n CONFIG_PROVE_RCU_REPEATEDLY
+y CONFIG_TRACING
+y CONFIG_DEBUG_STACK_USAGE
+y CONFIG_PAGE_POISONING
+n CONFIG_PAGE_POISONING_ZERO
+# $y CONFIG_SLUB_DEBUG
