@@ -1,0 +1,26 @@
+#!/bin/sh
+
+dtag=`date +%Y%m%d`
+config=${1:-config-io-dbench4-async}
+hostconf=config-m-`hostname -s`
+
+tag=nossd
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='nossd'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk
+
+tag=ssd
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='ssd'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk
+
+tag=ssd_spread
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='ssd,ssd_spread'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk

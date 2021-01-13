@@ -1,0 +1,69 @@
+#!/bin/bash
+# Usage: $0 [extra args]
+#
+# Execute fstests from local git with config from mmtests, assuming mmtests
+# and fstests git repositories
+#
+# Directories for fstests:
+# /mnt/fstests/test_dir		=== TEST_DIR
+# /mnt/fstests/scratch_mnt	=== SCRATCH_MNT
+
+die() { echo "ERROR: $@"; exit 1; }
+
+hostname=$(hostname -s)
+if ! [ -f "../test/config-m-$hostname" ]; then
+        die "No host config found for $hostname in ../test/"
+fi
+
+# User config
+source ../test/config-base
+source ../test/config-m-"$hostname"
+
+# post-user config fixups
+export XFSTESTS_TEST_DEV=$TESTDISK_PARTITION
+TESTDISK_PARTITION=''
+export XFSTESTS_SCRATCH_DEV_POOL
+
+if [ "$TESTDISK_PARTITION" != "" ]; then
+        die "TESTDISK_PARTITION must not be set for fstests, use XFSTESTS_TEST_DEV"
+fi
+if [ "$XFSTESTS_TEST_DEV" = "" ]; then
+        die XFSTESTS_TEST_DEV must be configured
+fi
+
+if [ -z "$XFSTESTS_SCRATCH_DEV" -a -z "$XFSTESTS_SCRATCH_DEV_POOL" ]; then
+        die XFSTESTS_SCRATCH_DEV or XFSTESTS_SCRATCH_DEV_POOL must be configured
+fi
+if [ "$TESTDISK_FILESYSTEM" = "" ]; then
+        die TESTDISK_FILESYSTEM must be configured
+fi
+
+if ! [ -z "$1" ]; then
+        echo "INFO: using extra args for ./check: $XFSTESTS_ARGS $@"
+        XFSTESTS_ARGS="$XFSTESTS_ARGS $@"
+fi
+
+SHELLPACK_TOPLEVEL=/mnt/fstests
+
+export TEST_DEV=$XFSTESTS_TEST_DEV
+export TEST_DIR=$SHELLPACK_TOPLEVEL/test_dir
+# Exactly one of the SCRATCH_DEV* variables can be set, but we'll not validate
+# it here and let fstests do that
+export SCRATCH_DEV=$XFSTESTS_SCRATCH_DEV
+export SCRATCH_DEV_POOL=$XFSTESTS_SCRATCH_DEV_POOL
+export SCRATCH_MNT=$SHELLPACK_TOPLEVEL/scratch_mnt
+export FSTYP=$TESTDISK_FILESYSTEM
+export MKFS_OPTIONS="$TESTDISK_MKFS_PARAM"
+export MOUNT_OPTIONS="${TESTDISK_MOUNT_ARGS:+-o $TESTDISK_MOUNT_ARGS}"
+
+mkdir -p $TEST_DIR
+mkdir -p $SCRATCH_MNT
+
+mkfs."$TESTDISK_FILESYSTEM" $TESTDISK_MKFS_PARAM "$XFSTESTS_TEST_DEV" ||
+        die Unable to mkfs TEST_DEV
+
+ts=$(date +%F_%T)
+./check -T $XFSTESTS_ARGS 2>&1 | tee "$SHELLPACK_TOPLEVEL/xfstests-default.log" \
+        || die Failed to run fstests
+
+mv "$SHELLPACK_TOPLEVEL/xfstests-default.log" "$SHELLPACK_TOPLEVEL/xfstests-$ts.log"

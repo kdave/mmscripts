@@ -1,4 +1,5 @@
 #!/bin/sh
+# Set short date tag as config-tag
 
 if [ -f "config-tag" ]; then
 	echo "Current: `cat config-tag`"

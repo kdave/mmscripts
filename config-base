@@ -1,0 +1,4 @@
+#!/bin/sh
+export TESTDISK_FILESYSTEM=btrfs
+export TESTDISK_MKFS_PARAM='-f'
+export TESTDISK_MOUNT_ARGS='noatime'

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+s=scripts/config
+function y() {
+        echo "Enable:  $1"
+        $s --enable "$1"
+}
+function n() {
+        echo "Disable: $1"
+        $s --disable "$1"
+}
+function m() {
+        echo "Module:  $1"
+        $s --module "$1"
+}
+
+type -p $s || { echo "scripts/config not found, not in linux dir?"; exit 1; }
+
+y CONFIG_HARDENED_USERCOPY
+y HARDENED_USERCOPY_PAGESPAN
+y CONFIG_FORTIFY_SOURCE
+y CONFIG_DEBUG_STACKOVERFLOW
+y CONFIG_LOCK_STAT
+y CONFIG_UBSAN
+y CONFIG_UBSAN_SANITIZE_ALL
+n CONFIG_UBSAN_ALIGNMENT
+n CONFIG_UBSAN_NULL
+y CONFIG_BTRFS_FS_REF_VERIFY
+y CONFIG_REFCOUNT_FULL

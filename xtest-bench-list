@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Get list of mmtests configs, call run-single on each of them, ie. grab results
+# for each round
+
+test -d mmtests || { echo "ERROR: no mmtests directory"; exit 1; }
+test -z "$1" && { echo "ERROR: no config list given"; exit 1; }
+
+here=`pwd`
+
+if ! [ -f config-tag ]; then
+	echo "ERROR: config-tag must be present"
+	exit 1
+fi
+tag=`cat config-tag | tr -d '\t\n '`
+echo "INFO: Tag: $tag"
+
+hostconf="$here/config-m-`hostname`"
+fsconf="$here/config-base"
+mnt="$here/mmtests/work/testdisk"
+logdir="$here/mmtests/work/log"
+
+# Check results, must be empty
+
+if [ -d "$logdir" ]; then
+	if [ `find "$logdir" | wc -l` != 1 ]; then
+		echo "ERROR: log directory not empty, clear manually"
+		exit 1
+	fi
+fi
+
+for config in `cat "$here/$1"`; do
+	echo "INFO: Execute mmtests and config $config"
+
+	./run-single "$config"
+	./results-clear
+	umount mmtests/work/testdisk
+done

@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Copy results from mmtests/work/log to a location based on timestamp and config
+
+timestamp=`date +%F_%T`
+tag=`cat config-tag`
+config="$1"
+if [ -z "$1" ]; then
+	echo "ERROR: give me a config, first will be used for directory, add more that'll be copied too"
+	exit 1
+fi
+shift
+dest=${timestamp}-${tag}-${config}
+
+mkdir -p "$dest"
+echo "DEST: $dest"
+echo "COPY: mmtests/work/log"
+cp -a mmtests/work/log/* "$dest"
+if ! [ -z "$1" ]; then
+	echo "COPY: $@"
+	cp -- -t "$dest" "$@"
+fi
+echo "COPY: configs"
+cf="$config"
+if ! [ -f "$cf" ]; then
+	if [ -f "mmtests/configs/$config" ]; then
+		cf="mmtests/configs/$config"
+	else
+		echo "WARN: $config not found in expected paths, not copied"
+	fi
+fi
+cp -- "$cf" config-tag config-m-`hostname -s` "$dest"

@@ -1,0 +1,11 @@
+#!/bin/sh
+[ -z "$MMSETUP" ] && { echo "ENVIRONMENT NOT SETUP"; exit 1; }
+cd "$MNTDIR"
+
+xfs_io -f -d -c "pwrite -S 0xab 0 1M" file
+od -t x1 file
+
+_mount_cycle
+
+od -t x1 file
+btrfs scrub start -B .

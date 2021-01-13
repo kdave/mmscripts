@@ -1,18 +1,18 @@
 #!/bin/sh
-
-# run a test script inside the environment defined by the mmtests setup
 #
-# this will:
+# Run a test script inside the environment defined by the mmtests setup
+#
+# This will:
 # - read the per-hostname config ($HOSTCONFIG)
 # - mkfs the filesystem
 # - create and mount to the directory mnt ($MNTDIR)
 # - cd into mnt and run the given script or command
 # - unmount
 #
-# without any script given, it will supply a simple 'df -h' to see if the steps
+# Without any script given, it will supply a simple 'df -h' to see if the steps
 # above work
 
-# variables available to the test script:
+# Variables available to the test script:
 # - HOSTCONFIG
 # - MNTDIR
 # - MMSETUP - the test is being run from this wrapper
@@ -33,7 +33,7 @@ if ! [ -z "$1" ]; then
 	runme="$1"
 fi
 
-echo "Executing: $runme"
+echo "RUN: $runme"
 
 export MNTDIR=`pwd`/mnt
 

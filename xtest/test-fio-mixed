@@ -1,0 +1,5 @@
+#!/bin/sh
+[ -z "$MMSETUP" ] && { echo "ENVIRONMENT NOT SETUP"; exit 1; }
+cd "$MNTDIR"
+
+fio ~/labs/t/fio-profiles/rw-mixed.fio

@@ -1,43 +1,67 @@
 #!/bin/sh
+# Usage: $0 configname [-c config...]
+#
+# Take base and host-specific configs, optionally with some more configs and
+# pass them to mmtests, grab results in the end, do pre-checks, do not clear
+# the results, assume mmtests directory in known paths
+#
+# More configs can be specified, but are meant only for fine-tuning the setup
+# from the base machine config, eg. specific mkfs or mount options
+#
+# Results are saved to $TIMESTAMP-$config directory
+
+autograbresults=true
 
 test -d mmtests || { echo "no mmtests"; exit 1; }
 test -z "$1" && { echo "no config given"; exit 1; }
 
 here=`pwd`
 if [ -f 'config-tag' ]; then
-	echo "Found tag file, using it"
+	echo "INFO: Found tag file, using it"
 	tag=`cat config-tag | tr -d '\t\n '`
 else
-	echo "Generating tag from kernel version"
+	echo "INFO: Generating tag from kernel version"
 	tag=`uname -r | sed -e 's/-.*$//'`
 fi
-echo "TAG: $tag"
+echo "INFO: tag: $tag"
 
 hostconf="$here/config-m-`hostname`"
-fsconf="$here/config-btrfs"
+fsconf="$here/config-base"
 mnt="$here/mmtests/work/testdisk"
 confpath="$here/$1"
 conf="$1"
+shift
 
 if ! [ -f "$conf" ]; then
 	if [ -f "$here/mmtests/configs/$conf" ]; then
-		echo "Using config inside mmtests"
+		echo "INFO: Using config inside mmtests"
 		conf="$here/mmtests/configs/$conf"
 	else
-		echo "Warning: config not found"
+		echo "WARNING: config $conf not found"
 	fi
 else
 	conf="$confpath"
-	echo "Using local config file $conf"
+	echo "INFO: Using local config file $conf"
 fi
 
 if findmnt "$mnt"; then
-	echo "Found that $mnt is still mounted, fix it or press Enter to continue"
+	echo "WARNING: Found that $mnt is still mounted, fix it or press Enter to continue"
 	read
 fi
+mkdir -p mmtests/work/log
+echo "INFO: Extra configs: $@"
+#set -x
+echo "$conf" | cat - "$fsconf" "$hostconf" "$@" > mmtests/work/log/config-run-`date +%F_%T`
 cd mmtests
-./run-mmtests.sh -c "$fsconf" -c "$hostconf" -c "$conf" "$tag"
+#sh -x
+./run-mmtests.sh -c "$fsconf" -c "$hostconf" -c "$conf" ${@/#/-c $here/} "$tag"
+cd "$here"
 
 if findmnt "$mnt"; then
 	sudo umount "$mnt"
+fi
+
+if $autograbresults; then
+	echo "INFO: Saving results"
+	`dirname "$(readlink $0)"`/results/results-grab $(basename "$conf")
 fi

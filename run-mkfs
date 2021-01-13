@@ -1,8 +1,10 @@
 #!/bin/sh
+# Create filesystem from config settings (type, flags, device)
+# Usage: $0 [configs...]
 
 here=`pwd`
 hostconf="$here/config-m-`hostname`"
-fsconf="$here/config-btrfs"
+fsconf="$here/config-base"
 
 source "$hostconf"
 source "$fsconf"
@@ -13,13 +15,13 @@ for arg in "$@"; do
 	source "$p"
 done
 
-[ -z "$TESTDISK_FILESYSTEM" ] && { echo "no filesystem defined"; exit 1; }
-[ -z "$TESTDISK_PARTITION" ] && { echo "no partition defined"; exit 1; }
+[ -z "$TESTDISK_FILESYSTEM" ] && { echo "ERROR: no filesystem defined"; exit 1; }
+[ -z "$TESTDISK_PARTITION" ] && { echo "ERROR: no partition defined"; exit 1; }
 
 if findmnt "$TESTDISK_PARTITION"; then
-	echo "Found that $TESTDISK_PARTITION is still mounted, fix it manually"
+	echo "ERROR: Found that $TESTDISK_PARTITION is still mounted, fix it manually"
 	exit 1
 fi
 
-echo COMMAND: mkfs."$TESTDISK_FILESYSTEM" $TESTDISK_MKFS_PARAM $TESTDISK_PARTITION $TESTDISK_MKFS_PARAM_SUFFIX
+echo RUN: mkfs."$TESTDISK_FILESYSTEM" $TESTDISK_MKFS_PARAM $TESTDISK_PARTITION $TESTDISK_MKFS_PARAM_SUFFIX
 mkfs."$TESTDISK_FILESYSTEM" $TESTDISK_MKFS_PARAM $TESTDISK_PARTITION $TESTDISK_MKFS_PARAM_SUFFIX

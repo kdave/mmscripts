@@ -1,0 +1,9 @@
+config-io-dbench4-fsync
+config-io-dbench4-async
+config-io-fio-randread-async-randwrite
+config-io-fio-randread-async-seqwrite
+config-io-filebench-webproxy-large
+config-io-filebench-varmail-large
+config-io-blogbench
+config-workload-kerndevel
+config-workload-mailserver

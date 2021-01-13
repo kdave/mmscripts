@@ -1,0 +1,23 @@
+#!/bin/sh
+# Create LVM devices (stub)
+# usage: $0 /dev/sdb /dev/sdc ...
+
+vg=vg1
+lv=lv
+lvsize=20G
+devcount=...
+stripesize=128
+
+if [ -z "$1" ]; then
+	echo "usage: $0 devices..."
+	exit 1
+fi
+
+if ! vgdisplay "$vg"; then
+	vgcreate -v "$vg" "$@"
+fi
+
+i=1
+while lvcreate -i 4 -I $stripesize -L "$lvsize" --name "$lv"$i "$vg"; do
+	i=$(($i+1))
+done

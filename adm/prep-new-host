@@ -17,17 +17,14 @@ if [ -f "$here/config-m-$hn" ]; then
 fi
 
 for i in	\
-	config-btrfs		\
+	config-base		\
 	kern-config-debug	\
 	kern-config-from-proc	\
 	kern-config-fstests	\
 	kern-inst-built		\
-	kick-kernel		\
-	pick-kernel		\
 	run-list		\
 	run-single		\
 	run-test		\
-	set-local-mirror	\
 	tag-set-today		\
 	configs-fsqa		\
 	; do
@@ -37,5 +34,4 @@ done
 cp -v "$here/mmtests.tgz" .
 tar xvf mmtests.tgz
 
-./set-local-mirror
 ./tag-set-today

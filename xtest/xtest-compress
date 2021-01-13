@@ -1,0 +1,26 @@
+#!/bin/sh
+
+dtag=`date +%Y%m%d`-base-
+config=${1:-config-io-dbench4-async}
+hostconf=config-m-`hostname -s`
+
+tag=nocomp
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='compress=no'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk
+
+tag=lzo
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='compress=lzo'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk
+
+tag=zlib
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='compress=lzo'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk

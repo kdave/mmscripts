@@ -1,0 +1,14 @@
+#!/bin/sh
+# Clear results from mmtests directory, use with care
+
+if ! [ -d mmtests ]; then
+	echo "ERROR: no mmtests around"
+	exit 1
+fi
+if ! [ -d mmtests/work/log ]; then
+	echo "ERROR: no mmtests with results"
+	exit 1
+fi
+
+echo "INFO: found result dir in mmtests/work/log, clearing, have a nice day"
+rm -rf -- mmtests/work/log/*

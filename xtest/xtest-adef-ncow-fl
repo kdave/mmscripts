@@ -1,0 +1,26 @@
+#!/bin/sh
+
+dtag=`date +%Y%m%d`-
+config=${1:-config-workload-mailserver}
+hostconf=config-m-`hostname -s`
+
+tag=adef
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='autodefrag'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk
+
+tag=ncow
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='nodatacow'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk
+
+tag=fl
+echo $dtag-$tag > config-tag
+echo "export TESTDISK_MOUNT_ARGS='flushoncommit'" >> $hostconf
+./run-single "$config"
+./clear-results
+umount mmtests/work/testdisk

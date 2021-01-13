@@ -1,0 +1,42 @@
+When grub2 stands in the way
+----------------------------
+
+* verify your default kernel, make sure it works, don't change it afterwards
+
+  $ grub2-editenv list
+  ... saved_entry
+
+* list of all grub2 kernels
+
+  $ grub2-once --list
+
+* set default, will remove any previous 'once' kernel
+
+  $ grub2-once 'exact name you see in the list'
+
+Config checks:
+
+* if your distro uses non-toplevel layout, you must have
+
+SUSE_BTRFS_SNAPSHOT_BOOTING="true"
+
+otherwise the system will not boot and getting out of it is humanly possible
+but only with superpowers (manually set up entire boot grub environment,
+modules, paths, etc)
+
+* get rid of recovery entries, note double variable, due to various bugs in
+  distro scripts
+
+GRUB_DISABLE_LINUX_RECOVERY="true"
+GRUB_DISABLE_RECOVERY="true"
+
+* make boot verbose, duplicate to console
+
+GRUB_CMDLINE_LINUX_DEFAULT="resume=/dev/sda1 showopts console=tty0 console=ttyS0,115200 nomodeset vga=6"
+
+* faster boot
+GRUB_TIMEOUT=2
+
+* all in one menu, shortens kernel name, all kernels visible, etc
+
+GRUB_DISABLE_SUBMENU=y
